@@ -550,6 +550,9 @@ class OpenAIServingResponses(OpenAIServing):
             prev_msg=self.msg_store.get(prev_response.id) if prev_response else None,
             prev_response_output=prev_response.output if prev_response else None,
         )
+
+        chat_template_kwargs = dict(reasoning_effort=request.reasoning.effort)
+
         _, request_prompts, engine_prompts = await self._preprocess_chat(
             request,
             tokenizer,
@@ -558,6 +561,7 @@ class OpenAIServingResponses(OpenAIServing):
             tool_parser=self.tool_parser,
             chat_template=self.chat_template,
             chat_template_content_format=self.chat_template_content_format,
+            chat_template_kwargs=chat_template_kwargs,
         )
         return messages, request_prompts, engine_prompts
 

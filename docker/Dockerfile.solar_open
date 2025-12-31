@@ -1,0 +1,17 @@
+FROM vllm/vllm-openai:v0.12.0 AS build
+
+COPY . .
+
+ARG VLLM_PRECOMPILED_WHEEL_LOCATION="https://github.com/vllm-project/vllm/releases/download/v0.12.0/vllm-0.12.0-cp38-abi3-manylinux_2_31_x86_64.whl"
+ARG VLLM_VERSION_OVERRIDE="0.12.0+solaropen"
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    echo "Building vllm" && \
+    VLLM_USE_PRECOMPILED=1 uv build . --wheel
+
+FROM vllm/vllm-openai:v0.12.0 AS vllm-openai
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,from=build,src=/vllm-workspace/dist,target=/vllm-workspace/dist \
+    echo "Installing vllm" && \
+    uv pip install --system dist/*.whl

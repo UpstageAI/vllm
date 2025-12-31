@@ -230,6 +230,12 @@ class SamplingParams(
     """Arbitrary additional args, that can be used by custom sampling
     implementations, plugins, etc. Not used by any in-tree sampling
     implementations."""
+    reasoning_effort: str | None = None
+    """Controls the amount of reasoning the model performs. Supported values
+    are "minimal", "low", "medium", and "high". Higher values enable extended
+    thinking for more complex tasks."""
+    parallel_tool_calls: bool = True
+    """Whether to allow parallel tool calls."""
 
     # Fields used for bad words
     bad_words: list[str] | None = None
@@ -270,6 +276,8 @@ class SamplingParams(
         logit_bias: dict[int, float] | dict[str, float] | None = None,
         allowed_token_ids: list[int] | None = None,
         extra_args: dict[str, Any] | None = None,
+        reasoning_effort: str | None = None,
+        parallel_tool_calls: bool | None = True,
     ) -> "SamplingParams":
         if logit_bias is not None:
             # Convert token_id to integer
@@ -310,6 +318,8 @@ class SamplingParams(
             logit_bias=logit_bias,
             allowed_token_ids=allowed_token_ids,
             extra_args=extra_args,
+            reasoning_effort=reasoning_effort,
+            parallel_tool_calls=True if parallel_tool_calls is None else parallel_tool_calls,
         )
 
     def __post_init__(self) -> None:
@@ -445,6 +455,16 @@ class SamplingParams(
                 "stop strings are only supported when detokenize is True. "
                 "Set detokenize=True to use stop."
             )
+        if self.reasoning_effort is not None and self.reasoning_effort not in (
+            "minimal",
+            "low",
+            "medium",
+            "high",
+        ):
+            raise ValueError(
+                f"reasoning_effort must be one of 'minimal', 'low', 'medium', 'high', "
+                f"got {self.reasoning_effort!r}."
+            )
 
     def _verify_greedy_sampling(self) -> None:
         if self.n > 1:
@@ -577,7 +597,8 @@ class SamplingParams(
             f"{self.spaces_between_special_tokens}, "
             f"truncate_prompt_tokens={self.truncate_prompt_tokens}, "
             f"structured_outputs={self.structured_outputs}, "
-            f"extra_args={self.extra_args})"
+            f"extra_args={self.extra_args}, "
+            f"reasoning_effort={self.reasoning_effort})"
         )
 
 

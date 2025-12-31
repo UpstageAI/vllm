@@ -1830,8 +1830,11 @@ def get_history_tool_calls_cnt(conversation: list[ConversationMessage]):
 
 
 def make_tool_call_id(id_type: str = "random", func_name=None, idx=None):
-    if id_type == "kimi_k2":
+    if id_type == "kimi_k2" and func_name is not None and idx is not None:
         return f"functions.{func_name}:{idx}"
+    elif id_type == "solar_open":
+        from vllm.entrypoints.openai.tool_parsers.solar_open_tool_parser import ToolCallID
+        return ToolCallID.random().to_string()
     else:
         # by default return random
         return f"chatcmpl-tool-{random_uuid()}"

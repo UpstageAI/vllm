@@ -431,6 +431,8 @@ class ResponsesRequest(OpenAIBaseModel):
                 RequestOutputKind.DELTA if self.stream else RequestOutputKind.FINAL_ONLY
             ),
             structured_outputs=structured_outputs,
+            reasoning_effort=self.reasoning and self.reasoning.effort,
+            parallel_tool_calls=self.parallel_tool_calls,
         )
 
     def is_include_output_logprobs(self) -> bool:
@@ -541,7 +543,7 @@ class ChatCompletionRequest(OpenAIBaseModel):
         | ChatCompletionNamedToolChoiceParam
         | None
     ) = "none"
-    reasoning_effort: Literal["low", "medium", "high"] | None = None
+    reasoning_effort: Literal["minimal", "low", "medium", "high"] | None = None
     include_reasoning: bool = True
     parallel_tool_calls: bool | None = True
 
@@ -831,6 +833,8 @@ class ChatCompletionRequest(OpenAIBaseModel):
             bad_words=self.bad_words,
             allowed_token_ids=self.allowed_token_ids,
             extra_args=extra_args or None,
+            reasoning_effort=self.reasoning_effort,
+            parallel_tool_calls=self.parallel_tool_calls,
         )
 
     @model_validator(mode="before")

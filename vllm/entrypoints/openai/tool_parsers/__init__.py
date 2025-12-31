@@ -130,6 +130,10 @@ _TOOL_PARSERS_TO_REGISTER = {
         "xlam_tool_parser",
         "xLAMToolParser",
     ),
+    "solar_open": (
+        "solar_open_tool_parser",
+        "SolarOpenToolParser",
+    ),
 }
 
 
