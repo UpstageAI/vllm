@@ -12,6 +12,7 @@ import jinja2
 import partial_json_parser
 import regex as re
 from fastapi import Request
+from openai.types.responses import ToolChoiceFunction
 from openai_harmony import Message as OpenAIMessage
 
 from vllm.engine.protocol import EngineClient
@@ -1522,7 +1523,7 @@ class OpenAIServingChat(OpenAIServing):
             # In OpenAI's API, when a tool is called, the finish_reason is "tool_calls"
             is_finish_reason_tool_calls = auto_tools_called or (
                 request.tool_choice
-                and request.tool_choice != "none"
+                and (request.tool_choice == "required" or isinstance(request.tool_choice, ToolChoiceFunction))
                 and output.finish_reason == "stop"
             )
 
