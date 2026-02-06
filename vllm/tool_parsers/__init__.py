@@ -150,6 +150,10 @@ _TOOL_PARSERS_TO_REGISTER = {
         "functiongemma_tool_parser",
         "FunctionGemmaToolParser",
     ),
+    "solar_open": (
+        "solar_open_tool_parser",
+        "SolarOpenToolParser",
+    ),
 }
 
 

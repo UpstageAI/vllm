@@ -88,6 +88,10 @@ _REASONING_PARSERS_TO_REGISTER = {
         "step3p5_reasoning_parser",
         "Step3p5ReasoningParser",
     ),
+    "solar_open": (
+        "solar_open_reasoning_parser",
+        "SolarOpenReasoningParser",
+    ),
 }
 
 

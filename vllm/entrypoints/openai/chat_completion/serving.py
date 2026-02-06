@@ -12,6 +12,7 @@ import jinja2
 import partial_json_parser
 import regex as re
 from fastapi import Request
+from openai.types.responses import ToolChoiceFunction
 from openai_harmony import Message as OpenAIMessage
 from partial_json_parser.core.options import Allow
 
@@ -147,6 +148,8 @@ class OpenAIServingChat(OpenAIServing):
             self.tool_call_id_type = "kimi_k2"
         else:
             self.tool_call_id_type = "random"
+        # TODO: remove hard-coded tool call id type
+        self.tool_call_id_type = "solar_open"
 
         self.use_harmony = self.model_config.hf_config.model_type == "gpt_oss"
         if self.use_harmony:
@@ -956,7 +959,7 @@ class OpenAIServingChat(OpenAIServing):
                                 )
                             else:
                                 delta_tool_call = DeltaToolCall(
-                                    id=make_tool_call_id(),
+                                    id=make_tool_call_id(id_type=self.tool_call_id_type),
                                     type="function",
                                     function=DeltaFunctionCall(
                                         name=tool_choice_function_name,
@@ -1269,12 +1272,10 @@ class OpenAIServingChat(OpenAIServing):
 
                         # Send the finish response for each request.n only once
                         # In OpenAI's API, when a tool is called, the
-                        # finish_reason is:
-                        # "tool_calls" for "auto" or "required" tool calls,
-                        # and "stop" for named tool calls.
+                        # finish_reason is "tool_calls"
                         if (
                             auto_tools_called
-                            or (tools_streamed[i] and not tool_choice_function_name)
+                            or tools_streamed[i]
                             or (self.use_harmony and harmony_tools_streamed[i])
                         ):
                             finish_reason_ = "tool_calls"
@@ -1540,7 +1541,13 @@ class OpenAIServingChat(OpenAIServing):
                     role=role,
                     reasoning=reasoning,
                     content="",
-                    tool_calls=[tool_call_class(function=tc) for tc in tool_calls],
+                    tool_calls=[
+                        tool_call_class(
+                            id=make_tool_call_id(id_type=self.tool_call_id_type),
+                            function=tc,
+                        )
+                        for tc in tool_calls
+                    ],
                 )
 
             elif request.tool_choice and request.tool_choice == "required":
@@ -1588,6 +1595,7 @@ class OpenAIServingChat(OpenAIServing):
                         content=content,
                         tool_calls=[
                             ToolCall(
+                                id=make_tool_call_id(id_type=self.tool_call_id_type),
                                 function=tc,
                                 type="function",
                             )
@@ -1618,12 +1626,13 @@ class OpenAIServingChat(OpenAIServing):
                     "completion."
                 )
                 message = ChatMessage(role=role, reasoning=reasoning, content=content)
-            # In OpenAI's API, when a tool is called, the finish_reason is:
-            # "tool_calls" for "auto" or "required" tool calls,
-            # and "stop" for named tool calls.
+            # In OpenAI's API, when a tool is called, the finish_reason is "tool_calls"
             is_finish_reason_tool_calls = auto_tools_called or (
                 request.tool_choice
-                and request.tool_choice == "required"
+                and (
+                    request.tool_choice == "required"
+                    or isinstance(request.tool_choice, ToolChoiceFunction)
+                )
                 and output.finish_reason == "stop"
             )
 

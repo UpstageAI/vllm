@@ -291,6 +291,8 @@ class ResponsesRequest(OpenAIBaseModel):
             skip_clone=True,  # Created fresh per request, safe to skip clone
             skip_special_tokens=self.skip_special_tokens,
             include_stop_str_in_output=self.include_stop_str_in_output,
+            reasoning_effort=self.reasoning.effort if self.reasoning else None,
+            parallel_tool_calls=self.parallel_tool_calls,
         )
 
     def is_include_output_logprobs(self) -> bool:
